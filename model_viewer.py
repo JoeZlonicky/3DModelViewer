@@ -8,17 +8,25 @@ class ModelViewer:
 	Use c to switch to a cube, p for a pyramid, and t for a triangular prism """
 	SCREEN_SIZE = (600, 600)
 	CENTER = (300, 300)
+	BACKGROUND_COLOR = (0, 0, 0)
+	TEXT_COLOR = (255, 255, 255)
 	ROTATE_RATE = 0.0075
 	CUBE_SIZE = 150
 	TRI_PRISM_SIZE = 150
 	TRI_PRISM_LENGTH = 150
 	PYRAMID_SIZE = 150
+	FONT_SIZE = 12
+	TEXT_SPACING = 3
+	TEXT_TOP = 5
+	TEXT_LEFT = 5
 	FPS = 120
 
 	def __init__(self):
 		""" Create a new application, displaying a cube by default """
+		pygame.init()
 		self.screen = pygame.display.set_mode(self.SCREEN_SIZE)
 		pygame.display.set_caption("Model Viewer")
+		self.font = pygame.font.SysFont("Arial", self.FONT_SIZE)
 		self.clock = pygame.time.Clock()
 		self.current_model = Cube(self.CUBE_SIZE)
 		self.running = True
@@ -53,8 +61,24 @@ class ModelViewer:
 
 			self.screen.fill((0, 0, 0))
 			self.current_model.draw(self.screen, self.CENTER)
+			self.draw_instructions()
 			pygame.display.flip()
 			self.clock.tick(self.FPS)
+
+	def draw_instructions(self):
+		""" Draw instruction text to screen """
+		t1 = self.font.render("w/s - rotate about x-axis", True, self.TEXT_COLOR)
+		t2 = self.font.render("d/a - rotate about y-axis", True, self.TEXT_COLOR)
+		t3 = self.font.render("q/e - rotate about z-axis", True, self.TEXT_COLOR)
+		t4 = self.font.render("c - change to cube model", True, self.TEXT_COLOR)
+		t5 = self.font.render("p - change to pyramid model", True, self.TEXT_COLOR)
+		t6 = self.font.render("t - change to triangular prism model", True, self.TEXT_COLOR)
+		labels = [t1, t2, t3, t4, t5, t6]
+		y = self.TEXT_TOP
+		for label in labels:
+			self.screen.blit(label, (self.TEXT_LEFT, y))
+			y += label.get_height() + self.TEXT_SPACING
+
 
 
 class Model:
