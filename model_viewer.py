@@ -3,7 +3,9 @@ from math import cos, sin, acos, pi, sqrt
 
 
 class ModelViewer:
-	""" Displays a 3d model. Use w/s, d/a, and q/e to rotate about x, y, and z axi respectively """
+	""" Displays a 3d model. 
+	Use w/s, d/a, and q/e to rotate about x, y, and z axi respectively.
+	Use c to switch to a cube, p for a pyramid, and t for a triangular prism """
 	SCREEN_SIZE = (600, 600)
 	CENTER = (300, 300)
 	ROTATE_RATE = 0.0075
