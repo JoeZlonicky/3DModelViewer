@@ -2,22 +2,74 @@ import pygame
 from math import cos, sin, acos, pi, sqrt
 
 
-SCREEN_SIZE = (600, 600)
-CENTER = (300, 300)
-ROTATE_RATE = 0.0025
-CUBE_SIZE = 150
-TRI_PRISM_SIZE = 150
-TRI_PRISM_LENGTH = 150
-PYRAMID_SIZE = 150
+class ModelViewer:
+	""" Displays a 3d model. Use w/s, d/a, and q/e to rotate about x, y, and z axi respectively """
+	SCREEN_SIZE = (600, 600)
+	CENTER = (300, 300)
+	ROTATE_RATE = 0.0075
+	CUBE_SIZE = 150
+	TRI_PRISM_SIZE = 150
+	TRI_PRISM_LENGTH = 150
+	PYRAMID_SIZE = 150
+	FPS = 120
+
+	def __init__(self):
+		""" Create a new application, displaying a cube by default """
+		self.screen = pygame.display.set_mode(self.SCREEN_SIZE)
+		pygame.display.set_caption("Model Viewer")
+		self.clock = pygame.time.Clock()
+		self.current_model = Cube(self.CUBE_SIZE)
+		self.running = True
+		self.loop()
+
+	def loop(self):
+		""" Handle events and draw to screen """
+		while self.running:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					self.running = False
+				elif event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_c:
+						self.current_model = Cube(self.CUBE_SIZE)
+					elif event.key == pygame.K_p:
+						self.current_model = Pyramid(self.PYRAMID_SIZE)
+					elif event.key == pygame.K_t:
+						self.current_model = TriangularPrism(self.TRI_PRISM_SIZE, self.TRI_PRISM_LENGTH)
+			keys = pygame.key.get_pressed()
+			if keys[pygame.K_d]:
+				self.current_model.rotate_y(-self.ROTATE_RATE)
+			if keys[pygame.K_a]:
+				self.current_model.rotate_y(self.ROTATE_RATE)
+			if keys[pygame.K_w]:
+				self.current_model.rotate_x(self.ROTATE_RATE)
+			if keys[pygame.K_s]:
+				self.current_model.rotate_x(-self.ROTATE_RATE)
+			if keys[pygame.K_q]:
+				self.current_model.rotate_z(self.ROTATE_RATE)
+			if keys[pygame.K_e]:
+				self.current_model.rotate_z(-self.ROTATE_RATE)
+
+			self.screen.fill((0, 0, 0))
+			self.current_model.draw(self.screen, self.CENTER)
+			pygame.display.flip()
+			self.clock.tick(self.FPS)
 
 
 class Model:
+	""" Holds data for a 3d model """
+
 	def __init__(self, points, mesh, colors):
+		""" Create a model from the given vertices and mesh of the given colors.
+			Points: List of tuples in the format (x, y, z)
+			Mesh: List of tuples representing triangles in the format (p1, p2, p3)
+					where each p is the index of a vertex  
+			Colors: List of tuples in the format (r, g, b) for the corresponding triangles of the mesh """ 
 		self.points = points
 		self.mesh = mesh
 		self.colors = colors
 
 	def rotate_x(self, theta):
+		""" Rotate about the x-axis by theta radians """
 		for point in self.points:
 			new = [0.0, 0.0, 0.0]
 			new[0] = point[0]
@@ -26,6 +78,7 @@ class Model:
 			point[:] = new[:]
 
 	def rotate_y(self, theta):
+		""" Rotate about the y-axis by theta radians """
 		for point in self.points:
 			new = [0.0, 0.0, 0.0]
 			new[0] = point[0] * cos(theta) + point[2] * sin(theta)
@@ -34,6 +87,7 @@ class Model:
 			point[:] = new[:]
 
 	def rotate_z(self, theta):
+		""" Rotate about the z-axis by theta radians """
 		for point in self.points:
 			new = [0.0, 0.0, 0.0]
 			new[0] = point[0] * cos(theta) - point[1] * sin(theta)
@@ -41,7 +95,8 @@ class Model:
 			new[2] = point[2]
 			point[:] = new[:]
 
-	def draw(self, screen):
+	def draw(self, screen, center):
+		""" Draw model to the screen """
 		tris = []
 		i = 0
 		for tri in self.mesh:
@@ -64,16 +119,19 @@ class Model:
 
 
 		for tri in tris:
-			p1x = int(self.points[tri[0]][0]) + CENTER[0]
-			p1y = -int(self.points[tri[0]][1]) + CENTER[1]
-			p2x = int(self.points[tri[1]][0]) + CENTER[0]
-			p2y = -int(self.points[tri[1]][1]) + CENTER[1]
-			p3x = int(self.points[tri[2]][0]) + CENTER[0]
-			p3y = -int(self.points[tri[2]][1]) + CENTER[1]
+			p1x = int(self.points[tri[0]][0]) + center[0]
+			p1y = -int(self.points[tri[0]][1]) + center[1]
+			p2x = int(self.points[tri[1]][0]) + center[0]
+			p2y = -int(self.points[tri[1]][1]) + center[1]
+			p3x = int(self.points[tri[2]][0]) + center[0]
+			p3y = -int(self.points[tri[2]][1]) + center[1]
 			pygame.draw.polygon(screen, tri[3], ((p1x, p1y), (p2x, p2y), (p3x, p3y)))
 
 class Cube(Model):
+	""" A cube model """
+	
 	def __init__(self, size):
+		""" Create new cube model where the length of each edge is size """
 		points = [[-size / 2, -size / 2, -size / 2], [-size / 2, size / 2, -size / 2],
 				[size / 2, size / 2, -size / 2], [size / 2, -size / 2, -size / 2],
 				[-size / 2, -size / 2, size / 2], [-size / 2, size / 2, size / 2],
@@ -91,7 +149,11 @@ class Cube(Model):
 
 
 class TriangularPrism(Model):
+	""" A triangular prism model """
+	
 	def __init__(self, tri_size, length):
+		""" Create a new model where tri_size is the length of the triangle edges 
+				and length is the depth of the prism """
 		height = sqrt(tri_size ** 2 - (tri_size / 2) ** 2)
 		points = [[-tri_size / 2, -height / 2, -length / 2],
 				  [0, height / 2, -length / 2],
@@ -108,7 +170,10 @@ class TriangularPrism(Model):
 
 
 class Pyramid(Model):
+	""" A pyramid model """
+	
 	def __init__(self, size):
+		""" Create a new model where size is the length of each edge """
 		height = sqrt(size ** 2 - (size / 2) ** 2)
 		points = [[-size / 2, -height / 2, -size / 2],
 				  [-size / 2, -height / 2, size / 2],
@@ -121,40 +186,5 @@ class Pyramid(Model):
 		super().__init__(points, mesh, colors)
 
 
-def main():
-	screen = pygame.display.set_mode(SCREEN_SIZE)
-	current_obj = Cube(CUBE_SIZE)
-	running = True
-	while running:
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				running = False
-			elif event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_c:
-					current_obj = Cube(CUBE_SIZE)
-				elif event.key == pygame.K_p:
-					current_obj = Pyramid(PYRAMID_SIZE)
-				elif event.key == pygame.K_t:
-					current_obj = TriangularPrism(TRI_PRISM_SIZE, TRI_PRISM_LENGTH)
-		keys = pygame.key.get_pressed()
-		if keys[pygame.K_d]:
-			current_obj.rotate_y(ROTATE_RATE)
-		if keys[pygame.K_a]:
-			current_obj.rotate_y(-ROTATE_RATE)
-		if keys[pygame.K_w]:
-			current_obj.rotate_x(ROTATE_RATE)
-		if keys[pygame.K_s]:
-			current_obj.rotate_x(-ROTATE_RATE)
-		if keys[pygame.K_q]:
-			current_obj.rotate_z(-ROTATE_RATE)
-		if keys[pygame.K_e]:
-			current_obj.rotate_z(ROTATE_RATE)
-
-
-		screen.fill((0, 0, 0))
-		current_obj.draw(screen)
-		pygame.display.flip()
-
-
 if __name__ == "__main__":
-	main()
+	ModelViewer()
